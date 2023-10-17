@@ -16,73 +16,83 @@ jobs:
     runs-on: ${{matrix.os}}
 
     steps:
-        - uses: actions/checkout@v3
+        - name: Checkout AdPlug
+          uses: actions/checkout@v4
+          with:
+            repository: 'adplug/adplug'
+            ref: 'db2cb13954adf124eed768ef62c8ba7d926f0d39' # target this commit, until new official release is available, this contains patches for Adplug to provide DJGPP/Adplay DOS compatibility
+            path: adplug
+        - name: Checkout libbinio
+          uses: actions/checkout@v4
+          with:
+            repository: 'adplug/libbinio'
+            path: libbinio
+        - name: Checkout gcctimer
+          uses: actions/checkout@v4
+          with:
+            repository: 'adplug/gcctimer'
+            path: gcctimer
+        - name: Checkout AdPlay for DOS (this repository)
+          uses: actions/checkout@v4
+          with:
+            path: adplay
     
         - name: Install packages (Linux)
           if: ${{ runner.os == 'Linux' }}
           run: |
             sudo apt update
-            sudo apt install -y texlive-latex-base texinfo   
+            sudo apt install -y texlive-latex-base texinfo libfl2 libfl-dev
+            # Flex is required, but even though it's in the GitHub runner image, and marked as installed
+            # it's still missing some things, see https://github.com/orgs/community/discussions/45029
    
-            if [[ ${{ matrix.compiler }} = djgpp* ]]; then
-              # Flex is required, but even though it's in the GitHub runner image, and marked as installed
-              # it's still missing some things, see https://github.com/orgs/community/discussions/45029
-              sudo apt install -y libfl2 libfl-dev
-    
-              if [[ ${{ matrix.compiler }} == "djgpp-2.0.5-gcc-12.2.0" ]]; then
-                wget https://github.com/andrewwutw/build-djgpp/releases/download/v3.4/djgpp-linux64-gcc1220.tar.bz2
-                bzcat djgpp-linux64-gcc1220.tar.bz2 | sudo tar -x --directory /usr/local
-              fi
-              if [[ ${{ matrix.compiler }} == "djgpp-2.0.5-gcc-4.8.5" ]]; then
-                wget https://github.com/andrewwutw/build-djgpp/releases/download/v1.6/djgpp-linux64-gcc485.tar.bz2
-                bzcat djgpp-linux64-gcc485.tar.bz2 | sudo tar -x --directory /usr/local
-              fi
+            if [[ ${{ matrix.compiler }} == "djgpp-2.0.5-gcc-12.2.0" ]]; then
+              wget https://github.com/andrewwutw/build-djgpp/releases/download/v3.4/djgpp-linux64-gcc1220.tar.bz2
+              bzcat djgpp-linux64-gcc1220.tar.bz2 | sudo tar -x --directory /usr/local
             fi
-    
+            if [[ ${{ matrix.compiler }} == "djgpp-2.0.5-gcc-4.8.5" ]]; then
+              wget https://github.com/andrewwutw/build-djgpp/releases/download/v1.6/djgpp-linux64-gcc485.tar.bz2
+              bzcat djgpp-linux64-gcc485.tar.bz2 | sudo tar -x --directory /usr/local
+            fi
+   
         - name: Set DJGPP environment
-          if: ${{ startsWith(matrix.compiler, 'djgpp') }}
           run: |
             echo 'compile_opts=--host=i586-pc-msdosdjgpp --prefix=/usr/local/djgpp CXXFLAGS=-Wno-deprecated CPPFLAGS=-Wno-deprecated PKG_CONFIG_PATH=/usr/local/djgpp/lib/pkgconfig' >> $GITHUB_ENV
             echo 'usr/local//djgpp/bin/' >> $GITHUB_PATH
     
         - name: Install libbinio
           run: |
-            git clone http://github.com/adplug/libbinio.git
             pushd libbinio && autoreconf -i && ./configure --enable-maintainer-mode ${{ env.compile_opts }} && make && sudo env PATH=$PATH make install && popd
     
-        - name: autoreconf
-          run: autoreconf -i
-        - name: configure
-          run: ./configure ${{ env.compile_opts }} || cat config.log
+        - name: autoreconf AdPlug
+          run: pushd adplug && autoreconf -i && popd
+        - name: configure AdPlug
+          run: pushd adplug && ./configure ${{ env.compile_opts }} || cat config.log && popd
     
-        - name: make
+        - name: make AdPlug
           run: |
             ulimit -c unlimited -S
-            if [[ ${{ matrix.compiler }} = djgpp* ]]; then
-              # Just verify it compiles and installs,
-              # we can't run tests because of binary incompatibility with host OS when cross compiling
-    
-              # Note: compile_opts is not used here, since DJGPP requires stuff like --host for ./configure
-              # which will mess with make's command-line parsing
-              make all
+            pushd adplug
+            # Note: compile_opts is not used here, since DJGPP requires stuff like --host for ./configure
+            # which will mess with make's command-line parsing
+            make install
+            popd
 
-# TODO: build GCC
-# TODO: Build adplay DOS
+        - name: Install gcctimer
+          run: |
+            git clone https://github.com/adplug/gcctimer.git # No specific tags or branches available
+            pushd gcctimer && autoreconf -i && ./configure --enable-maintainer-mode ${{ env.compile_opts }} && make && sudo env PATH=$PATH make install && popd
 
-  # build-adplay:
-
-  #       name: Build gcctimer
-  #       run: | 
-  #         docker exec mydjgppinstance bash -c "source /djgpp/setenv && /build/adplay-dos/build/build-gcctimer.sh"
-
-  #     - 
-  #       name: Build Adplay DOS
-  #       run: | 
-  #         docker exec mydjgppinstance bash -c "source /djgpp/setenv && /build/adplay-dos/build/build-adplay-dos.sh"
-  #     -
-  #       name: Upload artifact
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: adplay
-  #         path: |
-  #           *.zip
+        - name: Build AdPlay for DOS
+          run: |
+            cd adplay
+            cd window
+            make
+            make install
+            cd ..
+            make binarydist
+        - name: Upload artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: adplay
+            path: |
+              adplay/*.zip
