@@ -74,19 +74,19 @@ jobs:
             pushd adplug
             # Note: compile_opts is not used here, since DJGPP requires stuff like --host for ./configure
             # which will mess with make's command-line parsing
-            sudo make install
+            sudo env PATH=$PATH make install
             popd
 
         - name: Install gcctimer
           run: |
-            pushd gcctimer && autoreconf -i && ./configure --enable-maintainer-mode ${{ env.compile_opts }} && make && sudo env PATH=$PATH make install && popd
+            pushd gcctimer && make && sudo env PATH=$PATH make install && popd
 
         - name: Build AdPlay for DOS
           run: |
             cd adplay
             cd window
             make
-            sudo make install
+            sudo env PATH=$PATH make install
             cd ..
             make binarydist
         - name: Upload artifact
