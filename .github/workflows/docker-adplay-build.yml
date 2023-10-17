@@ -63,6 +63,13 @@ jobs:
           run: |
             pushd libbinio && autoreconf -i && ./configure --enable-maintainer-mode ${{ env.compile_opts }} && make && sudo env PATH=$PATH make install && popd
     
+        - name: Install gcctimer
+          run: |
+            pushd gcctimer
+            sudo env PATH=$PATH make CC=gcc prefix=/usr/local/djgpp # gcctimer does not have configure, so we cannot copy compile_opts
+            sudo env PATH=$PATH make CC=gcc prefix=/usr/local/djgpp install
+            popd
+
         - name: autoreconf AdPlug
           run: pushd adplug && autoreconf -i && popd
         - name: configure AdPlug
@@ -77,12 +84,7 @@ jobs:
             sudo env PATH=$PATH make install
             popd
 
-        - name: Install gcctimer
-          run: |
-            pushd gcctimer
-            sudo env PATH=$PATH CC=gcc prefix=/usr/local/djgpp make # gcctimer does not have configure, so we cannot copy compile_opts
-            sudo env PATH=$PATH CC=gcc prefix=/usr/local/djgpp make install
-            popd
+
 
         - name: Build AdPlay for DOS
           run: |
