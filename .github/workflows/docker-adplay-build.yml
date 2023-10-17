@@ -20,7 +20,7 @@ jobs:
           uses: actions/checkout@v4
           with:
             repository: 'adplug/adplug'
-            ref: 'db2cb13954adf124eed768ef62c8ba7d926f0d39' # target this commit, until new official release is available, this contains patches for Adplug to provide DJGPP/Adplay DOS compatibility
+            ref: 'db2cb13954adf124eed768ef62c8ba7d926f0d39' # Target this commit, this contains patches for Adplug to provide DJGPP/Adplay DOS compatibility. Leave as is until new version is released
             path: adplug
         - name: Checkout libbinio
           uses: actions/checkout@v4
@@ -79,7 +79,6 @@ jobs:
 
         - name: Install gcctimer
           run: |
-            git clone https://github.com/adplug/gcctimer.git # No specific tags or branches available
             pushd gcctimer && autoreconf -i && ./configure --enable-maintainer-mode ${{ env.compile_opts }} && make && sudo env PATH=$PATH make install && popd
 
         - name: Build AdPlay for DOS
