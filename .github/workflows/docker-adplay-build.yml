@@ -1,73 +1,88 @@
-name: Docker Image CI
+name: AdPlay for DOS CI/CD
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+  - push
+  - pull_request
 
 jobs:
-  build-djgpp-container:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        compiler: [djgpp-2.0.5-gcc-12.2.0, djgpp-2.0.5-gcc-4.8.5]
+
+      fail-fast: false
+
+    runs-on: ${{matrix.os}}
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v2
-      -
-        name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: ./Dockerfile
-          tags: djgpp-adplay
-          outputs: type=docker,dest=/tmp/djgpp-adplay.tar
-      -
-        name: Upload djgpp-adplay Docker image
-        uses: actions/upload-artifact@v3
-        with:
-          name: djgpp-adplay
-          path: /tmp/djgpp-adplay.tar
-  build-adplay:
-    needs: build-djgpp-container
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      -
-        name: Download djgpp-adplay Docker image
-        uses: actions/download-artifact@v3
-        with:
-          name: djgpp-adplay
-          path: /tmp
-      -
-        name: Load Docker image djgpp-adplay
-        run: |
-          docker load --input /tmp/djgpp-adplay.tar
-      - uses: actions/checkout@v3
-      - 
-        name: Startup DJGPP docker container instance
-        run: | 
-          docker run -d -it --name mydjgppinstance --volume $(pwd):/build/adplay-dos djgpp-adplay /bin/bash
-      - 
-        name: Build libbinio
-        run: | 
-          docker exec mydjgppinstance bash -c "source /djgpp/setenv && /build/adplay-dos/build/build-libbinio.sh"
-      - 
-        name: Build gcctimer
-        run: | 
-          docker exec mydjgppinstance bash -c "source /djgpp/setenv && /build/adplay-dos/build/build-gcctimer.sh"
-      - 
-        name: Build Adplug
-        run: | 
-          docker exec mydjgppinstance bash -c "source /djgpp/setenv && /build/adplay-dos/build/build-adplug.sh"
-      - 
-        name: Build Adplay DOS
-        run: | 
-          docker exec mydjgppinstance bash -c "source /djgpp/setenv && /build/adplay-dos/build/build-adplay-dos.sh"
-      -
-        name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: adplay
-          path: |
-            *.zip
+        - uses: actions/checkout@v3
+    
+        - name: Install packages (Linux)
+          if: ${{ runner.os == 'Linux' }}
+          run: |
+            sudo apt update
+            sudo apt install -y texlive-latex-base texinfo   
+   
+            if [[ ${{ matrix.compiler }} = djgpp* ]]; then
+              # Flex is required, but even though it's in the GitHub runner image, and marked as installed
+              # it's still missing some things, see https://github.com/orgs/community/discussions/45029
+              sudo apt install -y libfl2 libfl-dev
+    
+              if [[ ${{ matrix.compiler }} == "djgpp-2.0.5-gcc-12.2.0" ]]; then
+                wget https://github.com/andrewwutw/build-djgpp/releases/download/v3.4/djgpp-linux64-gcc1220.tar.bz2
+                bzcat djgpp-linux64-gcc1220.tar.bz2 | sudo tar -x --directory /usr/local
+              fi
+              if [[ ${{ matrix.compiler }} == "djgpp-2.0.5-gcc-4.8.5" ]]; then
+                wget https://github.com/andrewwutw/build-djgpp/releases/download/v1.6/djgpp-linux64-gcc485.tar.bz2
+                bzcat djgpp-linux64-gcc485.tar.bz2 | sudo tar -x --directory /usr/local
+              fi
+            fi
+    
+        - name: Set DJGPP environment
+          if: ${{ startsWith(matrix.compiler, 'djgpp') }}
+          run: |
+            echo 'compile_opts=--host=i586-pc-msdosdjgpp --prefix=/usr/local/djgpp CXXFLAGS=-Wno-deprecated CPPFLAGS=-Wno-deprecated PKG_CONFIG_PATH=/usr/local/djgpp/lib/pkgconfig' >> $GITHUB_ENV
+            echo 'usr/local//djgpp/bin/' >> $GITHUB_PATH
+    
+        - name: Install libbinio
+          run: |
+            git clone http://github.com/adplug/libbinio.git
+            pushd libbinio && autoreconf -i && ./configure --enable-maintainer-mode ${{ env.compile_opts }} && make && sudo env PATH=$PATH make install && popd
+    
+        - name: autoreconf
+          run: autoreconf -i
+        - name: configure
+          run: ./configure ${{ env.compile_opts }} || cat config.log
+    
+        - name: make
+          run: |
+            ulimit -c unlimited -S
+            if [[ ${{ matrix.compiler }} = djgpp* ]]; then
+              # Just verify it compiles and installs,
+              # we can't run tests because of binary incompatibility with host OS when cross compiling
+    
+              # Note: compile_opts is not used here, since DJGPP requires stuff like --host for ./configure
+              # which will mess with make's command-line parsing
+              make all
+
+# TODO: build GCC
+# TODO: Build adplay DOS
+
+  # build-adplay:
+
+  #       name: Build gcctimer
+  #       run: | 
+  #         docker exec mydjgppinstance bash -c "source /djgpp/setenv && /build/adplay-dos/build/build-gcctimer.sh"
+
+  #     - 
+  #       name: Build Adplay DOS
+  #       run: | 
+  #         docker exec mydjgppinstance bash -c "source /djgpp/setenv && /build/adplay-dos/build/build-adplay-dos.sh"
+  #     -
+  #       name: Upload artifact
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: adplay
+  #         path: |
+  #           *.zip
