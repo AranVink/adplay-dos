@@ -79,7 +79,10 @@ jobs:
 
         - name: Install gcctimer
           run: |
-            pushd gcctimer && make && sudo env PATH=$PATH make install && popd
+            pushd gcctimer
+            make env PATH=$PATH CC=gcc prefix=/usr/local/djgpp # gcctimer does not have configure, so we cannot copy compile_opts
+            sudo env PATH=$PATH CC=gcc prefix=/usr/local/djgpp make install
+            popd
 
         - name: Build AdPlay for DOS
           run: |
