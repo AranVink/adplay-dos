@@ -74,7 +74,7 @@ jobs:
             pushd adplug
             # Note: compile_opts is not used here, since DJGPP requires stuff like --host for ./configure
             # which will mess with make's command-line parsing
-            make install
+            sudo make install
             popd
 
         - name: Install gcctimer
@@ -87,7 +87,7 @@ jobs:
             cd adplay
             cd window
             make
-            make install
+            sudo make install
             cd ..
             make binarydist
         - name: Upload artifact
