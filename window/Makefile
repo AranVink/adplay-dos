@@ -1,12 +1,13 @@
 INSTALL = install
 
+CC = gcc
 DIST = txtgfx_d.c txtgfx.h window.cpp window.h wndman.cpp wndman.h \
 	debug.c debug.h readme.txt INSTALL Makefile
 
 VERSION = 1.1
 NAME = window-$(VERSION)
 
-prefix = /usr/local
+prefix = /usr/local/djgpp
 includedir = $(prefix)/include/window
 libdir = $(prefix)/lib
 srcdir = .
