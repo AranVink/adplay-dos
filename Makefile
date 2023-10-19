@@ -9,7 +9,7 @@ CXXFLAGS += -Wno-deprecated
 CPPFLAGS += -I$(prefix)/include/libbinio -I$(prefix)/include -I$(prefix)/include/adplug -I$(prefix)/include/window
 CXXFLAGS += -I$(prefix)/include/libbinio -I$(prefix)/include -I$(prefix)/include/adplug -I$(prefix)/include/window
 LDFLAGS += -lstdc++ -lwindow -ladplug -lbinio -lgcctimer
-LDFLAGS += -L$(prefix)/lib -L$(prefix)/lib/gcc/i586-pc-msdosdjgpp/12.2.0
+LDFLAGS += -L$(prefix)/lib -L$(prefix)/lib/gcc/i586-pc-msdosdjgpp/$(gcc_version)
 
 ifeq ($(DEBUG),1)
 	CPPFLAGS += -DDEBUG

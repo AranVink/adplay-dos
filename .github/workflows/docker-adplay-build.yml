@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        compiler: [djgpp-2.0.5-gcc-12.2.0, djgpp-2.0.5-gcc-4.8.5]
+        gcc_compiler: [12.2.0]
 
       fail-fast: false
 
@@ -41,23 +41,22 @@ jobs:
           if: ${{ runner.os == 'Linux' }}
           run: |
             sudo apt update
-            sudo apt install -y texlive-latex-base texinfo libfl2 libfl-dev
+            sudo apt install -y texlive-latex-base texinfo libfl2 libfl-dev bison flex curl make texinfo zlib1g-dev unzip wget bzip2 zip git bash automake libtool pkg-config
             # Flex is required, but even though it's in the GitHub runner image, and marked as installed
             # it's still missing some things, see https://github.com/orgs/community/discussions/45029
    
-            if [[ ${{ matrix.compiler }} == "djgpp-2.0.5-gcc-12.2.0" ]]; then
+            if [[ ${{ matrix.gcc_compiler }} == "12.2.0" ]]; then
               wget https://github.com/andrewwutw/build-djgpp/releases/download/v3.4/djgpp-linux64-gcc1220.tar.bz2
               bzcat djgpp-linux64-gcc1220.tar.bz2 | sudo tar -x --directory /usr/local
-            fi
-            if [[ ${{ matrix.compiler }} == "djgpp-2.0.5-gcc-4.8.5" ]]; then
-              wget https://github.com/andrewwutw/build-djgpp/releases/download/v1.6/djgpp-linux64-gcc485.tar.bz2
-              bzcat djgpp-linux64-gcc485.tar.bz2 | sudo tar -x --directory /usr/local
+            else
+              echo 'Unsupported version of GCC/DJGPP'
+              exit 1
             fi
    
         - name: Set DJGPP environment
           run: |
             echo 'compile_opts=--host=i586-pc-msdosdjgpp --prefix=/usr/local/djgpp CXXFLAGS=-Wno-deprecated CPPFLAGS=-Wno-deprecated PKG_CONFIG_PATH=/usr/local/djgpp/lib/pkgconfig' >> $GITHUB_ENV
-            echo 'usr/local//djgpp/bin/' >> $GITHUB_PATH
+            echo '/usr/local/djgpp/bin/' >> $GITHUB_PATH
     
         - name: Install libbinio
           run: |
@@ -65,35 +64,46 @@ jobs:
     
         - name: Install gcctimer
           run: |
+            source /usr/local/djgpp/setenv
             pushd gcctimer
-            sudo env PATH=$PATH make CC=gcc prefix=/usr/local/djgpp # gcctimer does not have configure, so we cannot copy compile_opts
+            # Because of some weird issue, make might fail with *.a: No such file or directory, while it is created just fine
+            set +e
+            make CC=gcc prefix=/usr/local/djgpp
+            set -e
+            make CC=gcc prefix=/usr/local/djgpp
             sudo env PATH=$PATH make CC=gcc prefix=/usr/local/djgpp install
             popd
 
-        - name: autoreconf AdPlug
-          run: pushd adplug && autoreconf -i && popd
-        - name: configure AdPlug
-          run: pushd adplug && ./configure ${{ env.compile_opts }} || cat config.log && popd
-    
         - name: make AdPlug
           run: |
             ulimit -c unlimited -S
             pushd adplug
+            autoreconf -i
+            ./configure ${{ env.compile_opts }}  || cat config.log
             # Note: compile_opts is not used here, since DJGPP requires stuff like --host for ./configure
             # which will mess with make's command-line parsing
             sudo env PATH=$PATH make install
             popd
 
-
+        - name: Build window library
+          run: |
+            pushd adplay/window
+            source /usr/local/djgpp/setenv
+            # Because of some weird issue, make might fail with *.a: No such file or directory, while it is created just fine
+            set +e
+            make
+            set -e
+            make 
+            sudo env PATH=$PATH make install
+            popd
 
         - name: Build AdPlay for DOS
           run: |
-            cd adplay
-            cd window
-            make
-            sudo env PATH=$PATH make install
-            cd ..
-            make binarydist
+            source /usr/local/djgpp/setenv
+            pushd adplay
+            make gcc_version=${{ matrix.gcc_compiler }} binarydist
+            popd
+
         - name: Upload artifact
           uses: actions/upload-artifact@v3
           with:
