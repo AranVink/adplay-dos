@@ -142,8 +142,8 @@ freely, subject to the following restrictions:
 
 Release History:
 ----------------
-- 1.7 (2023-08-31)
-  - Built with Adplug 2.3.3
+- 1.7 (2023-10-20)
+  - Built with Adplug 2.3.3+ (Oct 5, 2023 commit db2cb13954adf124eed768ef62c8ba7d926f0d39)
   - Removed support for other compilers than DJGPP.
   - Binary version compiled with DJGPP, GCC 12.2.0.
 
