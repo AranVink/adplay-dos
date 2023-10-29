@@ -178,8 +178,16 @@ void CWindow::outc(char c)
 		wndbuf[curpos] = c;
                 if(autocolor) colmap[curpos] = color[In];
 		curpos++;
-	} else
-		setcursor(0,wherey()+1);
+	}
+        if(c == '\n') {
+                // Newline will move the cursor one row down, unless it is the last in the string
+                // and we just started on a new window row. This would add an extra unneeded line.	
+                if ((wherex() % insizex == 0) && curpos > 0) {
+                        // Do nothing, cursor will move to the next row down when printing out next character anyway
+                } else {
+                        setcursor(0,wherey()+1);
+                }
+        }
 }
 
 void CWindow::outtext(const char *str)
