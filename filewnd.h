@@ -74,7 +74,7 @@ private:
         void listdrives();
         void listarc(archive &a);
         char *extract(char *newfn, archive &a, char *oldfn);
-        unsigned int drivenum(char *fname);
+        unsigned int drivenum(const char *fname);
         void sortinsert(FileItem *newitem);
 	bool supported(const char *filename);
 	bool is_subdir(struct dirent *direntp);

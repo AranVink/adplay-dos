@@ -354,13 +354,13 @@ void FileWnd::listarc(archive &a)
   }
 }
 
-unsigned int FileWnd::drivenum(char *fname)
+unsigned int FileWnd::drivenum(const char *fname)
 {
-  char *tmpstr = "A:";
-
-  for(*tmpstr='A';*tmpstr<='Z';(*tmpstr)++)
+  char tmpstr[] = "A:";
+  unsigned int a_as_uint = 'A';
+  for(*tmpstr=char('A');*tmpstr<=char('Z');(*tmpstr)++)
     if(!strcmp(fname,tmpstr))
-      return ((*tmpstr)-'A'+1);
+      return ((*tmpstr)-a_as_uint+1);
 
   return 0;
 }
