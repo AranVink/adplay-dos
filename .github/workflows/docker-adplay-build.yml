@@ -66,11 +66,7 @@ jobs:
           run: |
             source /usr/local/djgpp/setenv
             pushd gcctimer
-            # Because of some weird issue, make might fail with *.a: No such file or directory, while it is created just fine
-            set +e
-            make CC=gcc prefix=/usr/local/djgpp
-            set -e
-            make CC=gcc prefix=/usr/local/djgpp
+            make CC=gcc prefix=/usr/local/djgpp RANLIB=ranlib
             sudo env PATH=$PATH make CC=gcc prefix=/usr/local/djgpp install
             popd
 
@@ -89,11 +85,7 @@ jobs:
           run: |
             pushd adplay/window
             source /usr/local/djgpp/setenv
-            # Because of some weird issue, make might fail with *.a: No such file or directory, while it is created just fine
-            set +e
-            make
-            set -e
-            make 
+            make RANLIB=ranlib
             sudo env PATH=$PATH make install
             popd
 
