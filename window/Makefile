@@ -4,7 +4,10 @@ CC = gcc
 DIST = txtgfx_d.c txtgfx.h window.cpp window.h wndman.cpp wndman.h \
 	debug.c debug.h readme.txt INSTALL Makefile
 
-VERSION = 1.1
+CPPFLAGS += -O2 -Wall -Wextra -Werror
+CXXFLAGS += -O2 -Wall -Wextra -Werror
+
+VERSION = 1.2
 NAME = window-$(VERSION)
 
 prefix = /usr/local/djgpp
