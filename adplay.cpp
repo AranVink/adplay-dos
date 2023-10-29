@@ -131,7 +131,7 @@ static void dbg_printf(const char *fmt, ...)
   fprintf(f_log,logbuffer);
 }
 #else
-static void dbg_printf(const char *fmt, ...) { }
+static void dbg_printf([[maybe_unused]] const char *fmt, ...) { }
 #endif
 
 static void poll_player(void)
@@ -601,8 +601,6 @@ static void play(char *fn)
   // Update instruments window
   instwnd.erase();
 
-  const unsigned char window_vertical_line = 179; // Window box vertical bar character, in code page 437, unicode representation: │
-
   for(i=0;i<p->getinstruments();i++) {
     sprintf(ins,"%3d%c",i+1, &window_vertical_line);
     instwnd.outtext(ins);
@@ -787,7 +785,7 @@ int main(int argc, char *argv[])
 #endif
       stop();
       exit(EXIT_SUCCESS);
-    }
+  }
 
   /*** Batch playback mode ***/
   if(batchply) {
