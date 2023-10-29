@@ -769,7 +769,7 @@ int main(int argc, char *argv[])
   CAdPlug::set_database(&mydb);
 
   /*** Background playback mode ***/
-  if(bkgply)
+  if(bkgply) {
     if(!(p = CAdPlug::factory(argv[myoptind],&opl))) {
       std::cout << "[" << argv[myoptind] << "]: unsupported file type!" << std::endl;
       exit(EXIT_FAILURE);
@@ -785,6 +785,7 @@ int main(int argc, char *argv[])
 #endif
       stop();
       exit(EXIT_SUCCESS);
+    }
   }
 
   /*** Batch playback mode ***/
