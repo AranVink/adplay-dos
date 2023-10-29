@@ -4,7 +4,8 @@ ZIP = zip
 prefix = /usr/local/djgpp
 
 CPPFLAGS += -DHAVE_GCC_TIMER_H
-CXXFLAGS += -Wno-deprecated
+CPPFLAGS += -O3 -Wall -Wextra
+CXXFLAGS += -O3 -Wall -Wextra
 CPPFLAGS += -I$(prefix)/include/libbinio -I$(prefix)/include -I$(prefix)/include/adplug -I$(prefix)/include/window
 CXXFLAGS += -I$(prefix)/include/libbinio -I$(prefix)/include -I$(prefix)/include/adplug -I$(prefix)/include/window
 LDFLAGS += -lstdc++ -lwindow -ladplug -lbinio -lgcctimer
