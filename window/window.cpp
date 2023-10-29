@@ -127,9 +127,9 @@ void CWindow::redraw(void)
 
 	settextposition(y,x);
         ::setcolor(color[Border]);
-	outchar('Ú');
+	outchar('ï¿½');
 	for(i=x+1;i<x+((sizex-1)/2-(strlen(caption)/2+2));i++)
-		outchar('Ä');
+		outchar('ï¿½');
 	::outtext("> ");
         if(focus == this)
                 ::setcolor(color[Focus]);
@@ -139,15 +139,15 @@ void CWindow::redraw(void)
         ::setcolor(color[Border]);
 	::outtext(" <");
 	for(i+=strlen(caption)+4;i<x+sizex-1;i++)
-		outchar('Ä');
-	outchar('¿');
+		outchar('ï¿½');
+	outchar('ï¿½');
 	for(j=y+1;j<y+sizey-1;j++) {
 		settextposition(j,x);
 		wndx = 0;
 		for(i=x;i<x+sizex;i++)
 			if(i==x || i==x+sizex-1) {
                                 ::setcolor(color[Border]);
-				outchar('³');
+				outchar('ï¿½');
 			} else {
 				::setcolor(colmap[wndy*insizex+wndx]);
 				outchar(wndbuf[wndy*insizex+wndx]);
@@ -157,10 +157,10 @@ void CWindow::redraw(void)
 	}
         ::setcolor(color[Border]);
 	settextposition(y+sizey-1,x);
-	outchar('À');
+	outchar('ï¿½');
 	for(i=x+1;i<x+sizex-1;i++)
-		outchar('Ä');
-	outchar('Ù');
+		outchar('ï¿½');
+	outchar('ï¿½');
 }
 
 void CWindow::outc(char c)
@@ -176,7 +176,7 @@ void CWindow::outc(char c)
 		setcursor(0,wherey()+1);
 }
 
-void CWindow::outtext(char *str)
+void CWindow::outtext(const char *str)
 {
 	unsigned int i;
 
@@ -184,7 +184,7 @@ void CWindow::outtext(char *str)
 		outc(str[i]);
 }
 
-void CWindow::puts(char *str)
+void CWindow::puts(const char *str)
 {
 	outtext(str);
 	setcursor(0,wherey()+1);
