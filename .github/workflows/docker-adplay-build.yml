@@ -55,19 +55,19 @@ jobs:
    
         - name: Set DJGPP environment
           run: |
-            echo 'compile_opts=--host=i586-pc-msdosdjgpp --prefix=/usr/local/djgpp CXXFLAGS=-Wno-deprecated CPPFLAGS=-Wno-deprecated PKG_CONFIG_PATH=/usr/local/djgpp/lib/pkgconfig' >> $GITHUB_ENV
+            echo 'compile_opts=--host=i586-pc-msdosdjgpp --prefix=/usr/local/djgpp PKG_CONFIG_PATH=/usr/local/djgpp/lib/pkgconfig' >> $GITHUB_ENV
             echo '/usr/local/djgpp/bin/' >> $GITHUB_PATH
     
         - name: Install libbinio
           run: |
-            pushd libbinio && autoreconf -i && ./configure --enable-maintainer-mode ${{ env.compile_opts }} && make && sudo env PATH=$PATH make install && popd
+            pushd libbinio && autoreconf -i && ./configure --enable-maintainer-mode ${{ env.compile_opts }} && make && sudo env PATH="$PATH" make install && popd
     
         - name: Install gcctimer
           run: |
             source /usr/local/djgpp/setenv
             pushd gcctimer
             make CC=gcc prefix=/usr/local/djgpp RANLIB=ranlib
-            sudo env PATH=$PATH make CC=gcc prefix=/usr/local/djgpp install
+            sudo env PATH="$PATH" make CC=gcc prefix=/usr/local/djgpp install
             popd
 
         - name: make AdPlug
@@ -76,9 +76,7 @@ jobs:
             pushd adplug
             autoreconf -i
             ./configure ${{ env.compile_opts }}  || cat config.log
-            # Note: compile_opts is not used here, since DJGPP requires stuff like --host for ./configure
-            # which will mess with make's command-line parsing
-            sudo env PATH=$PATH make install
+            sudo env PATH="$PATH" make install
             popd
 
         - name: Build window library
@@ -86,7 +84,7 @@ jobs:
             pushd adplay/window
             source /usr/local/djgpp/setenv
             make RANLIB=ranlib
-            sudo env PATH=$PATH make install
+            sudo env PATH="$PATH" make install
             popd
 
         - name: Build AdPlay for DOS
