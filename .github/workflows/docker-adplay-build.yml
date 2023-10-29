@@ -41,7 +41,7 @@ jobs:
           if: ${{ runner.os == 'Linux' }}
           run: |
             sudo apt update
-            sudo apt install -y texlive-latex-base texinfo libfl2 libfl-dev bison flex curl make texinfo zlib1g-dev unzip wget bzip2 zip git bash automake libtool pkg-config
+            sudo apt install -y texlive-latex-base texinfo libfl2 libfl-dev bison flex curl make texinfo zlib1g-dev unzip wget bzip2 zip git bash automake libtool pkg-config upx
             # Flex is required, but even though it's in the GitHub runner image, and marked as installed
             # it's still missing some things, see https://github.com/orgs/community/discussions/45029
    
