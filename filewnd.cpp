@@ -96,7 +96,7 @@ bool FileWnd::select()
   err = None;
 
   // Disk drive selected?
-  if(f->attr == FileItem::Drive && (drive = drivenum(fname)))
+  if(f->attr == FileItem::Drive && (drive = drivenum(fname))) {
     // Try to switch to drive
     if(!_dos_getdiskfree(drive,&dummy2)) {
       _dos_setdrive(drive,&dummy);
@@ -106,6 +106,7 @@ bool FileWnd::select()
       err = Drive_NotReady;
       return false;
     }
+  }
 
   // Currently displaying an archive?
   if(arcmode) {
