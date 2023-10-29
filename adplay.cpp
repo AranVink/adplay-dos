@@ -696,7 +696,8 @@ int main(int argc, char *argv[])
 {
   char          inkey=0, *prgdir, *curdir, *program_name;
   bool          ext, validcfg, quit = false, bkgply = false, batchply = false;
-  unsigned int	opt, prgdrive, i;
+  unsigned int	opt, prgdrive;
+  int i;
   CWindow       *focus;
 
 #ifdef DEBUG
