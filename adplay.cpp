@@ -117,7 +117,7 @@ static int onsongend = 0;                        // What to do on song end
 
 static FILE *f_log;
 
-static void dbg_printf(char *fmt, ...)
+static void dbg_printf(const char *fmt, ...)
 {
   static char logbuffer[256];
 
@@ -131,7 +131,7 @@ static void dbg_printf(char *fmt, ...)
   fprintf(f_log,logbuffer);
 }
 #else
-static void dbg_printf(char *fmt, ...) { }
+static void dbg_printf(const char *fmt, ...) { }
 #endif
 
 static void poll_player(void)
