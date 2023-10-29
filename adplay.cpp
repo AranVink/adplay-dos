@@ -602,7 +602,7 @@ static void play(char *fn)
   instwnd.erase();
 
   for(i=0;i<p->getinstruments();i++) {
-    sprintf(ins,"%3d%c",i+1, &window_vertical_line);
+    sprintf(ins,"%3d\xB3",i+1);  // \xB3 is window box vertical bar character, in code page 437, unicode representation: │
     instwnd.outtext(ins);
     instwnd.puts(p->getinstrument(i).c_str());
   }
