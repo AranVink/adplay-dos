@@ -600,8 +600,11 @@ static void play(char *fn)
 
   // Update instruments window
   instwnd.erase();
+
+  const unsigned char window_vertical_line = 179; // Window box vertical bar character, in code page 437, unicode representation: │
+
   for(i=0;i<p->getinstruments();i++) {
-    sprintf(ins,"%3d³",i+1);
+    sprintf(ins,"%3d%c",i+1, &window_vertical_line);
     instwnd.outtext(ins);
     instwnd.puts(p->getinstrument(i).c_str());
   }
