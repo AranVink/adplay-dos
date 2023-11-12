@@ -55,3 +55,22 @@ binarydist: adplay.exe
 
 install: adplay.exe
 	$(INSTALL) adplay.exe $(bindir)
+
+test:
+	mkdir -p capture
+	set +eux
+	dosbox-x --version || true
+	SDL_VIDEODRIVER=offscreen
+	SDL_AUDIODRIVER=dummy
+	# dosbox-x --fastlaunch --nomenu --time-limit 10 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay"
+	# No DRO, no output on stdin
+	dosbox-x --debug --fastlaunch --nomenu --time-limit 10 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay /? >> thelp.txt"
+	# No DRO, thelp should contain Adplay help
+	cp -v ../adplug/test/testmus/* .
+	# dosbox-x --fastlaunch --nomenu --time-limit 600 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay -q testmus\loudness.lds >> tbatch.txt"
+	# dosbox-x --fastlaunch --nomenu --time-limit 600 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay -q adplay.ini >> tbatch.txt"
+	for f in ./testmus/*; do dosbox-x --fastlaunch --nomenu --time-limit 10 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay -q $f >> $f.txt"; done
+	ls -al ./capture
+	# Assert Adplay is printed in output of txt.out
+	# Assert audio is hearable
+	# Assert dro file matches known good dro file
