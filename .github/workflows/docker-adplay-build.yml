@@ -129,14 +129,13 @@ jobs:
             export SDL_VIDEODRIVER=offscreen
             export SDL_AUDIODRIVER=dummy
             dosbox-x --fastlaunch --nomenu --time-limit 10 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay"
-            dosbox-x --fastlaunch --nomenu --time-limit 10 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay /?"
+            dosbox-x --fastlaunch --nomenu --time-limit 10 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay /? >> thelp.txt"
             cp -v ../adplug/test/testmus/* .
-            dosbox-x --fastlaunch --nomenu --time-limit 600 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay -q loudness.lds"
+            dosbox-x --fastlaunch --nomenu --time-limit 600 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay -q loudness.lds >> tbatch.txt"
             ls -al ./capture
             # Assert Adplay is printed in output of txt.out
             # Assert audio is hearable
             # Assert dro file matches known good dro file
-            # Seperate video file
             popd
         - name: Upload artifact
           uses: actions/upload-artifact@v3
