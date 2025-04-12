@@ -3,6 +3,7 @@ name: AdPlay for DOS CD
 on:
   - push
   - pull_request
+  - workflow_dispatch
 
 jobs:
   build:
@@ -105,9 +106,26 @@ jobs:
             unzip -j -o "csdpmi7b.zip" "bin/CWSDPMI.EXE"
             cp ../adplug/test/testmus/loudness.lds .
             dosemu adplay.exe -dumb /q loudness.lds
-        - name: Upload artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: adplay
-            path: |
-              adplay/*.zip
+
+        - name: Tag this version 'latest'
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+            pushd adplay
+            git tag -f latest
+            git push -f origin latest
+            popd
+
+        - name: Upload latest development version to 'latest' release
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            tag: latest
+          run: |
+            gh release upload "$tag" adplay/*.zip --repo="$GITHUB_REPOSITORY" --clobber
+
+        # - name: Upload artifact
+        #   uses: actions/upload-artifact@v3
+        #   with:
+        #     name: adplay
+        #     path: |
+        #       adplay/*.zip
