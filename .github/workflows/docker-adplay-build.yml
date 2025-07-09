@@ -1,4 +1,4 @@
-name: AdPlay for DOS CD
+name: AdPlay for DOS CI/CD
 
 on:
   - push
@@ -20,7 +20,7 @@ jobs:
           uses: actions/checkout@v4
           with:
             repository: 'adplug/adplug'
-            ref: 'db2cb13954adf124eed768ef62c8ba7d926f0d39' # Target specific commit, it contains patches for Adplug to provide DJGPP/Adplay DOS compatibility. TODO: Replace with new AdPlug tagged version when released
+            ref: 'db2cb13954adf124eed768ef62c8ba7d926f0d39' # Target this commit, this contains patches for Adplug to provide DJGPP/Adplay DOS compatibility. Leave as is until new version is released
             path: adplug
         - name: Checkout libbinio
           uses: actions/checkout@v4
@@ -36,8 +36,21 @@ jobs:
           uses: actions/checkout@v4
           with:
             path: adplay
+        - name: Checkout DosBox-X
+          uses: actions/checkout@v4
+          with:
+            repository: AranVink/dosbox-x
+            ref: 'abd5f29d8fa2b406ed8d3cc71746dbada83ae8a9' # Specific commit with adds /O to DX-CAPTURE, allowing for DRO capture from the command-line
+            path: dosbox-x
+        - name: Checkout SDL
+          uses: actions/checkout@v4
+          with:
+            repository: libsdl-org/SDL
+            ref: 'release-2.28.5' # We need a newer version (SDL2 >= 2.0.12) that support SDL_VIDEO_OFFSCREEN, which Ubuntu's SDL2 package does not have (yet).
+            path: sdl
     
-        - name: Install Linux packages
+        - name: Install packages (Linux)
+          if: ${{ runner.os == 'Linux' }}
           run: |
             sudo apt update
             sudo apt install -y texlive-latex-base texinfo libfl2 libfl-dev bison flex curl make texinfo zlib1g-dev unzip wget bzip2 zip git bash automake libtool pkg-config upx
@@ -92,9 +105,44 @@ jobs:
             pushd adplay
             make gcc_version=${{ matrix.gcc_compiler }} binarydist
             popd
+        - name: Build SDL2
+          run: |
+            pushd sdl
+            ./configure --enable-video-offscreen
+            make
+            sudo make install
+            popd
+        - name: Build dosbox-x
+          run: |
+            pushd dosbox-x
+            sudo apt install -y automake gcc g++ make libncurses-dev nasm libpcap-dev libslirp-dev fluidsynth libfluidsynth-dev libavdevice58 libavformat-dev libavcodec-dev libavcodec-extra libavcodec-extra58 libswscale-dev libfreetype-dev libxkbfile-dev libxrandr-dev
+            ./build-sdl2
+            sudo make install
+            popd
+        - name: Test AdPlay for DOS
+          run: |
+            set -x
+            set +e
+            pushd adplay
+            mkdir capture
+            dosbox-x --version
+            export SDL_VIDEODRIVER=offscreen
+            export SDL_AUDIODRIVER=dummy
+            dosbox-x --fastlaunch --nomenu --time-limit 10 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay"
+            dosbox-x --fastlaunch --nomenu --time-limit 10 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay /? >> thelp.txt"
+            cp -v ../adplug/test/testmus/* .
+            dosbox-x --fastlaunch --nomenu --time-limit 600 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay -q loudness.lds >> tbatch.txt"
+            ls -al ./capture
+            # Assert Adplay is printed in output of txt.out
+            # Assert audio is hearable
+            # Assert dro file matches known good dro file
+            popd
         - name: Upload artifact
           uses: actions/upload-artifact@v3
           with:
             name: adplay
             path: |
               adplay/*.zip
+              adplay/capture/*.dro
+              adplay/capture/*.wav
+              adplay/capture/*.avi
