@@ -69,7 +69,11 @@ test:
 	cp -v ../adplug/test/testmus/* .
 	# dosbox-x --fastlaunch --nomenu --time-limit 600 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay -q testmus\loudness.lds >> tbatch.txt"
 	# dosbox-x --fastlaunch --nomenu --time-limit 600 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay -q adplay.ini >> tbatch.txt"
-	for f in ./testmus/*; do dosbox-x --fastlaunch --nomenu --time-limit 10 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /v /a /o adplay -q $f >> $f.txt"; done
+	for f in ./testmus/*
+	do
+		timeout 16 dosbox-x --fastlaunch --nomenu --time-limit 10 --exit -c "mount c ." -c "c:" -c "cls" -c "dx-capture /a /o adplay -q $f >> $f.txt"
+    	mv -v capture/adplay_000.dro capture/$f.dro
+	done
 	ls -al ./capture
 	# Assert Adplay is printed in output of txt.out
 	# Assert audio is hearable
